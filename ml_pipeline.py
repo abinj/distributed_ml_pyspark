@@ -1,4 +1,5 @@
 from pyspark.sql import SparkSession
+import matplotlib.pyplot as plt
 
 # Instantiate a spark session
 
@@ -37,7 +38,6 @@ on_time_flights_count = df.filter(df.label == 0).count()
 # Calculate the sub-sampling ratio for the on-time flights
 
 ratio = (df.count() - on_time_flights_count) / on_time_flights_count
-print(ratio)
 
 # under sample the redundant class
 # Since roughly 20 of the total flights are delayed, taking 20% of 0s and 100% of 1s into dataset
@@ -45,6 +45,17 @@ print(ratio)
 df = df.sampleBy('label', {0: ratio, 1: 1})
 
 #df.show(20)
+
+
+sub_df = df.groupBy('AIRLINE').agg({"ARRIVAL_DELAY": "avg"}).withColumnRenamed('avg(ARRIVAL_DELAY)', 'AVG_ARRIVAL_DELAY')
+
+df_pandas = sub_df.toPandas()
+df_pandas.plot(x='AIRLINE', y= 'AVG_ARRIVAL_DELAY', kind='bar', figsize=(10, 8))
+plt.grid(which='major', linestyle='-', linewidth=0.5, color='green')
+plt.grid(which='minor', linestyle=':', linewidth=0.5, color='black')
+plt.show()
+
+
 
 
 
